@@ -1,0 +1,144 @@
+import csv
+
+# Fichier de données
+file_mensajes = r".\source\Mensajes"
+file_airport = r".\source\airports.csv"
+
+# Code possible à tester :
+possibilite1 = [[4, 6, 6],
+               [5, 7, 7],
+               [7, 9, 7],  # jusqu'ici les principales
+               [4, 6, 7],
+               [4, 7, 6],
+               [5, 6, 7],
+               [5, 7, 6],
+               [4, 7, 7],
+               ]
+possibilite2 = [[8, 8, 10],
+               [10, 9, 11],
+               [11, 10, 11],
+               [11, 10, 12],  # jusqu'ici les principales
+               [8, 8, 11],
+               [10, 10, 11],
+               [10, 10, 12],
+               [8, 9, 10],
+               [8, 9, 11],
+               ]
+
+
+# Formatage des différents messages dans une collection
+def open_file(file_path):
+    """Fichier de texte en utf8"""
+    with open(file_path, 'r', encoding="utf-8") as file:
+        return [line.strip() for line in file.readlines()]
+
+
+def decoupe_message(file_contenu, filtre: bool):
+    """Fait un nouveau message dès qu'une nouvelle ligne commence par 'Mensaje'"""
+    messages = {}
+    titre_courant = None
+    code_courant = {}  # Dictionnaire pour stocker les lignes du message courant
+
+    for ligne in file_contenu:
+        # Suppression de la ligne '1 2 3 4 5 6 7 8 9 10 11 12'
+        if not ligne == "1 2 3 4 5 6 7 8 9 10 11 12":
+            if ligne.startswith("Mensaje"):
+                if code_courant:  # Si le message courant n'est pas vide, on le sauvegarde
+                    if not filtre or 'Yahuar Huácac' in titre_courant:
+                        messages[titre_courant] = code_courant
+                titre_courant = ligne
+                code_courant = {}  # On réinitialise pour le prochain message
+            else:
+                # on retire les 2 premiers caractères de la ligne
+                numero_ligne = int(ligne[:1])
+                # On decoupe le texte les caractères espaces
+                code = ligne[2:].split(" ")
+                if len(code) != 12:
+                    raise ValueError("Une ligne du fichier source ne comprend pas 12 caractères :\n"
+                                     f"{titre_courant} - {ligne}")
+                # On ajoute la ligne au message courant
+                code_courant[numero_ligne] = code
+
+    return messages
+
+
+def parsing_airports(csv_file, filtre: bool):
+    """En tête de colonne ligne 1 du csv :
+    code,icao,name,latitude,longitude,elevation,url,time_zone,city_code,country,city,state,county,type
+    Recuperation uniquement de code, name et country
+    Filtre sur les aéroport français et sud Américain"""
+    airports = {}
+    with open(csv_file, 'r', encoding="utf-8") as csv_file:
+        file_read = csv.reader(csv_file, delimiter=",")
+
+        array = list(file_read)
+
+    # Recuperer le code pour faire un dictionnaire
+    for ligne in array:
+        # Si filtre Amerique du sud et france
+        if not filtre or (ligne[9] == "FR" or (ligne[7].startswith("America") and float(ligne[3]) < 5)):
+            # Si ligne 9 contient "FR" ou ligne 7 commence par "America"
+            airports[ligne[0]] = [ligne[2], ligne[7], ligne[9]]
+
+    return airports
+
+
+def decode_mesaje(code, mesaje):
+    """Trouver les 6 caractères du code dans un mesaje"""
+    caractere = ""
+    ligne = 1
+    for numero in code:
+        try:
+            caractere += mesaje[ligne][numero-1]
+        except IndexError:
+            caractere += "!"
+        ligne = ligne+1
+
+    return caractere[:3], caractere[3:]
+
+def verify_airport(code, airport_list):
+    """Verify airport code in the list of airports"""
+    if code in airport_list.keys():
+        return airport_list[code]
+    else:
+        return False
+
+
+if __name__ == '__main__':
+
+    # Lire le fichier
+    contenu = open_file(file_mensajes)
+
+    # Découpage des messages
+    Mensajes = decoupe_message(contenu, False)
+    print(Mensajes)
+
+    # Recuperation des aeroports
+    Aeroports = parsing_airports(file_airport, True)
+    print(Aeroports)
+    print(len(Aeroports.keys()))
+
+    # Assembler les combinaisons de possibilité 1 et 2
+    possibilite = []
+    for value1 in possibilite1:
+        for value2 in possibilite2:
+            possibilite.append([*value1, *value2])
+    print(possibilite)
+
+    # Faire tous les decodages
+    results_to_test = []
+    for code in possibilite:
+        for mesaje in Mensajes:
+            air_dep, air_arr = decode_mesaje(code, Mensajes[mesaje])
+            results_to_test.append([mesaje, air_dep, air_arr, code])
+
+    print(results_to_test)
+
+    # Verifier toutes les possibilités pour voir si on trouve les aéroports
+    count_res = 0
+    for results in results_to_test:
+        air_dep = verify_airport(results[1], Aeroports)
+        air_arr = verify_airport(results[2], Aeroports)
+        if air_dep and air_arr:
+            count_res += 1
+            print(f"Réponse {count_res} : {results} - {air_dep} - {air_arr}")
