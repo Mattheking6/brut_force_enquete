@@ -4,26 +4,23 @@ import csv
 file_mensajes = r".\source\Mensajes"
 file_airport = r".\source\airports.csv"
 
+
+
 # Code possible à tester :
-possibilite1 = [[4, 6, 6],
-               [5, 7, 7],
-               [7, 9, 7],  # jusqu'ici les principales
-               [4, 6, 7],
-               [4, 7, 6],
-               [5, 6, 7],
-               [5, 7, 6],
-               [4, 7, 7],
-               ]
-possibilite2 = [[8, 8, 10],
-               [10, 9, 11],
-               [11, 10, 11],
-               [11, 10, 12],  # jusqu'ici les principales
-               [8, 8, 11],
-               [10, 10, 11],
-               [10, 10, 12],
-               [8, 9, 10],
-               [8, 9, 11],
-               ]
+noeuds = {1:[2, 3, 2],
+               2:[2, 3, 1, 3],
+               3:[1, 3, 2],
+               4:[3, 2, 2, 4],
+               5:[4, 1, 3, 2],
+               6:[6, 1, 4]
+                }
+
+decodage_noeud = []
+
+# Somme de noeuds
+for key, value in noeuds.items():
+    decodage_noeud.append(sum(value))
+print(decodage_noeud)
 
 
 # Formatage des différents messages dans une collection
@@ -114,23 +111,14 @@ if __name__ == '__main__':
     print(Mensajes)
 
     # Recuperation des aeroports
-    Aeroports = parsing_airports(file_airport, True)
-    print(Aeroports)
-    print(len(Aeroports.keys()))
-
-    # Assembler les combinaisons de possibilité 1 et 2
-    possibilite = []
-    for value1 in possibilite1:
-        for value2 in possibilite2:
-            possibilite.append([*value1, *value2])
-    print(possibilite)
+    Aeroports = parsing_airports(file_airport, False)
+    print(f"Nombres d'aéroports retenus : {len(Aeroports.keys())}")
 
     # Faire tous les decodages
     results_to_test = []
-    for code in possibilite:
-        for mesaje in Mensajes:
-            air_dep, air_arr = decode_mesaje(code, Mensajes[mesaje])
-            results_to_test.append([mesaje, air_dep, air_arr, code])
+    for mesaje in Mensajes:
+        air_dep, air_arr = decode_mesaje(decodage_noeud, Mensajes[mesaje])
+        results_to_test.append([mesaje, air_dep, air_arr, decodage_noeud])
 
     print(results_to_test)
 
