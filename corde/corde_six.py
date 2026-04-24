@@ -1,5 +1,11 @@
 import csv
 
+# Filtrer les aeroports sur france et sud amérique
+F_airport = False
+# Filtre dieu inca
+F_inca = False
+
+
 # Fichier de données
 file_mensajes = r".\source\Mensajes"
 file_airport = r".\source\airports.csv"
@@ -107,11 +113,11 @@ if __name__ == '__main__':
     contenu = open_file(file_mensajes)
 
     # Découpage des messages
-    Mensajes = decoupe_message(contenu, False)
+    Mensajes = decoupe_message(contenu, F_inca)
     print(Mensajes)
 
     # Recuperation des aeroports
-    Aeroports = parsing_airports(file_airport, False)
+    Aeroports = parsing_airports(file_airport, F_airport)
     print(f"Nombres d'aéroports retenus : {len(Aeroports.keys())}")
 
     # Faire tous les decodages
