@@ -99,11 +99,11 @@ if __name__ == '__main__':
     contenu = open_file(file_mensajes)
 
     # Découpage des messages
-    Mensajes = decoupe_message(contenu, False)
+    Mensajes = decoupe_message(contenu, True)
     print(Mensajes)
 
     # Recuperation des aeroports
-    Aeroports = parsing_airports(file_airport, True)
+    Aeroports = parsing_airports(file_airport, False)
     print(Aeroports)
     print(len(Aeroports.keys()))
 
@@ -113,9 +113,11 @@ if __name__ == '__main__':
     for mensaje in Mensajes:
         count += 1
         message = ""
-        for num_ligne in range(1, 6):
+        for num_ligne in range(1, 7):
+            sum_noeud = 0
             for noeud in possibilite[num_ligne]:
-                message += str(Mensajes[mensaje][num_ligne][noeud-1])
+                sum_noeud += noeud
+                message += str(Mensajes[mensaje][num_ligne][sum_noeud-1])
 
         air_dep = verify_airport(message[:3], Aeroports)
         air_arr = verify_airport(message[3:6], Aeroports)
